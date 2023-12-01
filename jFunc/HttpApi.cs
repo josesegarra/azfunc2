@@ -18,7 +18,7 @@ namespace jFunc
     // C:\projects\explore\2023\2023_11_az_resources
     // ?bundle=http://localhost/az/cb1_day.zip
 
-    public static class HttpExample
+    public static class HttpApi
     {
 
         internal static ILogger logger = null;
@@ -31,10 +31,16 @@ namespace jFunc
         }
 
 
-        // http://localhost:7068/api/HttpExample?_key=this_is_key&_start=http://localhost/az/test.js&cb=cb1&cp=43428&f=DAY
+        public static void Mock()
+        {
+            Console.WriteLine("Mocking a request4");
+        }
 
-        [FunctionName("HttpExample")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,ILogger log)
+
+
+        // http://localhost:7068/api/HttpExample?_key=this_is_key&_start=http://localhost/az/test.js&cb=cb1&cp=43428&f=DAY
+        [FunctionName("run")]
+        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,ILogger log)
         {
             try
             {
@@ -63,13 +69,7 @@ namespace jFunc
                 var ok = js.Execute(files[start]);
                 if (js.Result != null)
                 {
-                    if (req.Query.Get("_nowrap") != "")
-                    {
-                        Log("NOWRAP OPTION ["+ req.Query.Get("_nowrap")+"]");
-                        Log("NOWRAP OPTION [" + req.Query.Get("_nowrap").Length + "]");
-
-                        return ok ? new OkObjectResult(js.Result) : new BadRequestObjectResult(js.Result.ToString());
-                    }
+                    if (req.Query.Get("_nowrap") != "") return ok? new OkObjectResult(js.Result): new BadRequestObjectResult(js.Result.ToString());
                     dynamic res = new ExpandoObject();
                     res.ok = ok;
                     res.start = startTime.ToISO8601();
