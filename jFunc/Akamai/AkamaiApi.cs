@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Policy;
 using System.Text;
-using jFunc;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
+using jFunc.Rest;
 
 namespace jFunc.Akamai
 {
@@ -42,7 +38,7 @@ namespace jFunc.Akamai
             return AkamaiUtils.GetAuthorizationHeaderValue(credential, timestamp, authData, requestData);
         }
 
-        public AkamaiResponse Get(string url)
+        public RestResponse Get(string url)
         {
             var uri = new Uri(url);
             var auth=Sign("GET", uri);
@@ -50,10 +46,10 @@ namespace jFunc.Akamai
             {
                 request.Headers.Add(AuthorizationHeader,auth);
                 var response=client.SendAsync(request).Result;
-                return new AkamaiResponse(response);
+                return new RestResponse(response);
             }
         }
-        public AkamaiResponse Post(string url,string data)
+        public RestResponse Post(string url,string data)
         {
             var uri = new Uri(url);
             var auth = Sign("POST", uri,data);
@@ -63,7 +59,7 @@ namespace jFunc.Akamai
                 request.Headers.Add(AuthorizationHeader, auth);
                 request.Content = new StringContent(data,Encoding.UTF8,"application/json");//CONTENT-TYPE header
                 var response = client.SendAsync(request).Result;
-                return new AkamaiResponse(response);
+                return new RestResponse(response);
             }
         }
     }

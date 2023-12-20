@@ -17,6 +17,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Akamai\" />
+    <Folder Include="Azure\" />
   </ItemGroup>
 </Project>

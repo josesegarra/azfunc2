@@ -7,27 +7,27 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace jFunc.Akamai
+namespace jFunc.Rest
 {
-    public class AkamaiResponse
+    public class RestResponse
     {
-        public Dictionary<string,object> Headers { get; } = new Dictionary<string,object>();
+        public Dictionary<string, object> Headers { get; } = new Dictionary<string, object>();
         public int Status = 0;
-        public string Content { get;  }
+        public string Content { get; }
 
-        internal AkamaiResponse(HttpResponseMessage message)
+        internal RestResponse(HttpResponseMessage message)
         {
-            Status=(int)message.StatusCode;
+            Status = (int)message.StatusCode;
             foreach (var a in message.Headers)
             {
                 if (a.Value.GetType() is IEnumerable)
                 {
-                    var f = ((IEnumerable)a.Value).Cast<string>();
+                    var f = a.Value.Cast<string>();
                     if (f.Count() == 1) Headers[a.Key] = f.First(); else Headers[a.Key] = f;
                 }
                 else Headers[a.Key] = a.Value;
             }
-            Content =message.Content.ReadAsStringAsync().Result.Trim();
+            Content = message.Content.ReadAsStringAsync().Result.Trim();
         }
     }
 }

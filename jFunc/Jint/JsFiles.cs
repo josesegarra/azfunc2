@@ -9,16 +9,16 @@ using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace jFunc
+namespace jFunc.Jint
 {
-    internal class ScriptFiles
+    internal class JsFiles
     {
 
-        Dictionary<string, string> content = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, string> content = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         internal string Origin { get; private set; }
 
         internal string urlBase = "";
-        
+
         internal string this[string value]
         {
             get => Fetch(value);
@@ -29,20 +29,21 @@ namespace jFunc
             var u1 = value.ToLower();
             if (u1.StartsWith("http://") || u1.StartsWith("https://"))                                              // Always fetch http content
             {
-                if (urlBase=="") urlBase = Utils.UrlPath(value);
-                return value.HttpGet<string>();                                      
+                if (urlBase == "") urlBase = Utils.UrlPath(value);
+                return value.HttpGet<string>();
             }
-            if (urlBase != "") return (urlBase+value).HttpGet<string>();
+            if (urlBase != "") return (urlBase + value).HttpGet<string>();
             if (content.Keys.Contains(value)) return content[value];
             throw new Exception("File not un Bundle:" + value);
         }
 
-        internal static ScriptFiles FromBundle(string url)
-        {   
-            var bundle= new ScriptFiles() { Origin = url };
+        internal JsFiles(string url = "")
+        {
+            Origin = url;
+            if (url == "") return;
             using (var dataStream = url.HttpGet<Stream>())
             {
-                using (var zipArchive= new ZipArchive(dataStream, ZipArchiveMode.Read))
+                using (var zipArchive = new ZipArchive(dataStream, ZipArchiveMode.Read))
                 {
                     foreach (var entry in zipArchive.Entries)
                     {
@@ -53,13 +54,12 @@ namespace jFunc
                                 stream.CopyTo(memoryStream);
                                 memoryStream.Position = 0;
                                 var bytes = memoryStream.ToArray();
-                                bundle.content.Add(entry.Name.Trim(),System.Text.Encoding.UTF8.GetString(bytes));
+                                content.Add(entry.Name.Trim(), Encoding.UTF8.GetString(bytes));
                             }
                         }
                     }
                 }
             }
-            return bundle;
         }
 
 

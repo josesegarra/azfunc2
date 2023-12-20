@@ -1,17 +1,11 @@
 using System;
-using System.IO;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using jFunc.Js;
-using System.Dynamic;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using JFunc.Utils;
+using jFunc.Jint;
 
 namespace jFunc
 {
@@ -33,8 +27,19 @@ namespace jFunc
 
         public static void Mock()
         {
-            Console.WriteLine("Mocking a request4");
+            Console.WriteLine("Mocking a request4"); 
         }
+
+        [FunctionName("token")]
+        public static IActionResult Token([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req, ILogger log)              // This function returns a token to access a script. It requires the KEY and the script path in VALUE
+        {
+            var key= req.Query.Get("key");
+            if (key.Length < 2) return new BadRequestObjectResult("Missing key");
+            var value= req.Query.Get("value");
+            if (value.Length < 2) return new BadRequestObjectResult("Missing value");
+            return new OkObjectResult(EncryptionHelper.Encrypt(key, value));
+        }
+
 
 
 
@@ -45,56 +50,18 @@ namespace jFunc
             try
             {
                 logger = log;
-
-                var key = Environment.GetEnvironmentVariable("key") ?? "";
-                string user_key = req.Query["_key"];
-                user_key = (user_key ?? "").Trim();
-                if (user_key.Length < 3 || user_key != key) throw new Exception("Missing key parameter");
-
-                var bundle = req.Query.Get("_bundle");
-                ScriptFiles files = bundle!="" ? ScriptFiles.FromBundle(bundle):new ScriptFiles();
-
-                var start = req.Query.Get("_start");
-                if (bundle != "" && start == "") start = "main.js";
-
-                var js = new JsRuntime() { OnFile = (fname) => files[fname] };
-
-                var scriptLog=new List<string>();
-                js.Define("log", (Action<string>)(s => scriptLog.Add("["+DateTime.Now.ToISO8601()+"] "+s)));
-
-                js.Define("query", (Func<string,string>)(s => s.Trim().StartsWith("_") ? "": req.Query.Get(s)));
-
-
-                var startTime = DateTime.Now;
-                var ok = js.Execute(files[start]);
-                if (js.Result != null)
-                {
-                    if (req.Query.Get("_nowrap") != "") return ok? new OkObjectResult(js.Result): new BadRequestObjectResult(js.Result.ToString());
-                    dynamic res = new ExpandoObject();
-                    res.ok = ok;
-                    res.start = startTime.ToISO8601();
-                    res.duration = (DateTime.Now - startTime).TotalMilliseconds + " ms";
-                    res.log=scriptLog.ToArray();
-                    res.data = js.Result;
-                    return new JsonResult(res,new JsonSerializerSettings() { Formatting=Formatting.Indented});
-                    
-                    //return new OkObjectResult(res);
-                }
-                /*
-                string user_key = req.Query["key"];
-                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                dynamic data = JsonConvert.DeserializeObject(requestBody);
-                //name = name ?? data?.name;                                                                                                          // Either name came from GET or as 
-                user_key = user_key ?? string.Empty;
-                var key = Environment.GetEnvironmentVariable("key") ?? string.Empty;
-
-                */
-                return new BadRequestObjectResult("Bad request");
-
+                var value=HttpAuthorize.DecryptValue(req.Query.Get("_token"));                                                                          // Get and decrypt TOKEN using system key
+                if (!value.ToLower().StartsWith("http:") && !value.ToLower().StartsWith("https:")) throw new Exception("Bad value");                    // Must be an HTTP point        
+                var host = new JsHost(value);                                                                                                           // Create a HOST capable of running VALUE
+                host.Define("query", (Func<string, string>)(s => s.Trim().StartsWith("_") ? "" : req.Query.Get(s)));                                    // Define the QUERY function in the host that just returns the query parameter    
+                bool nodata = req.Query.Get("_nodata") != "";                                                                                           // Do we want a result at all....
+                bool nowrap = req.Query.Get("_nowrap") != "";                                                                                           // Are we wrapping the result
+                var result =host.Run(nowrap, nodata);
+                return result;
             }
             catch (Exception ex)
             {
-                return new BadRequestObjectResult("Bad Error: "+ex.FullText());
+                return new BadRequestObjectResult("This error leaked somehow: "+ex.FullText());
             }
         }
     }
