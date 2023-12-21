@@ -8,6 +8,7 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Net.Http;
 using System.Reflection.Metadata;
+using Microsoft.AspNetCore.Http;
 
 namespace jFunc
 {
@@ -174,12 +175,34 @@ namespace jFunc
             return p0.Substring(0, p0.LastIndexOf('/')) + "/";
         }
 
-        public static string Get(this Microsoft.AspNetCore.Http.IQueryCollection q,string w)
+        public enum IfNotFound {  returnEmpty,Throw};
+
+        public static string Get(this Microsoft.AspNetCore.Http.IQueryCollection q,string w,IfNotFound def=IfNotFound.Throw)
         {
             string p = q[w];
-            return (p ?? "").Trim();
+            if (p != null && p.Length > 0) return p.Trim();
+            return def == IfNotFound.returnEmpty ? "" : throw new Exception("Missing query parameter: " + w);
         }
 
+        public static string Get(this Microsoft.AspNetCore.Http.IFormCollection q, string w, IfNotFound def = IfNotFound.Throw)
+        {
+            string p = q[w];
+            if (p != null && p.Length > 0) return p.Trim();
+            return def == IfNotFound.returnEmpty ? "" : throw new Exception("Missing form parameter: " + w);
+        }
+
+        public static T TryCatch<T>(Func<T> f1, Func<Exception, T> onFail = null)
+        {
+            
+            try
+            {
+                return f1();
+            }
+            catch(Exception e)
+            {
+                return onFail(e);
+            }
+        }
 
 
     }

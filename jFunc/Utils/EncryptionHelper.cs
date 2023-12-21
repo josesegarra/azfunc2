@@ -41,10 +41,11 @@ namespace JFunc.Utils
                         cs.Write(clearBytes, 0, clearBytes.Length);
                         cs.Close();
                     }
-                    clearText = UrlFriendly(Convert.ToBase64String(ms.ToArray()));
+                    var cryptedText = UrlFriendly(Convert.ToBase64String(ms.ToArray()));
+                    if (Decrypt(EncryptionKey, cryptedText) != clearText) throw new Exception("Internal error in AES crypt");
+                    return cryptedText;
                 }
             }
-            return clearText;
         }
         public static string Decrypt(string EncryptionKey,string cipherText)
         {
