@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Security.Cryptography;
 using System.Net.Http;
-using System.Reflection.Metadata;
-using Microsoft.AspNetCore.Http;
 
 namespace jFunc
 {
@@ -204,6 +199,49 @@ namespace jFunc
             }
         }
 
+
+        public static Dictionary<string, byte[]> Unzip(Stream dataStream)
+        {
+            var result = new Dictionary<string, byte[]>();
+            using (var zipArchive = new ZipArchive(dataStream, ZipArchiveMode.Read))
+            {
+                foreach (var entry in zipArchive.Entries)
+                {
+                    using (Stream stream = entry.Open())
+                    {
+                        using (MemoryStream memoryStream = new MemoryStream())
+                        {
+                            stream.CopyTo(memoryStream);
+                            memoryStream.Position = 0;
+                            result.Add(entry.Name.Trim(), memoryStream.ToArray());
+                        }
+                    }
+                }
+                return result;
+            }
+        }
+
+
+        public static byte[] Zip(Dictionary<string, byte[]> input)
+        {
+            using (var ms = new MemoryStream())
+            {
+                using (var zipArchive = new ZipArchive(ms, ZipArchiveMode.Create,true))                                 // Leave the MS stream open
+                {
+                    foreach (var x in input)
+                    {
+                        var entry = zipArchive.CreateEntry(x.Key,CompressionLevel.Optimal);
+                        using (var zipStream = entry.Open())
+                        {
+                            zipStream.Write(x.Value, 0, x.Value.Length);
+                            //zipStream.Close();
+                        }
+                    }
+                }
+                ms.Position = 0;
+                return ms.ToArray();
+            }
+        }
 
     }
 }

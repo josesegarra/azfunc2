@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JFunc.Utils;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace jFunc.Jint
 {
@@ -16,6 +18,10 @@ namespace jFunc.Jint
 
         Dictionary<string, string> content = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         internal string Origin { get; private set; }
+        internal string Name { get; private set; }
+        internal string Path { get; private set; }
+        internal string Query { get; private set; }
+
 
         internal string urlBase = "";
 
@@ -26,43 +32,35 @@ namespace jFunc.Jint
 
         string Fetch(string value)
         {
-            var u1 = value.ToLower();
-            if (u1.StartsWith("http://") || u1.StartsWith("https://"))                                              // Always fetch http content
-            {
-                if (urlBase == "") urlBase = Utils.UrlPath(value);
-                return value.HttpGet<string>();
-            }
-            if (urlBase != "") return (urlBase + value).HttpGet<string>();
+            if (Name!="")   return (Path + value + (Query != "" ? Query : "")).HttpGet<string>();
             if (content.Keys.Contains(value)) return content[value];
             throw new Exception("File not un Bundle:" + value);
         }
 
-        internal JsFiles(string url = "")
+
+        Stream GetStream(string name,string url,string password)
         {
-            Origin = url;
-            if (url == "") return;
-            using (var dataStream = url.HttpGet<Stream>())
-            {
-                using (var zipArchive = new ZipArchive(dataStream, ZipArchiveMode.Read))
-                {
-                    foreach (var entry in zipArchive.Entries)
-                    {
-                        using (Stream stream = entry.Open())
-                        {
-                            using (MemoryStream memoryStream = new MemoryStream())
-                            {
-                                stream.CopyTo(memoryStream);
-                                memoryStream.Position = 0;
-                                var bytes = memoryStream.ToArray();
-                                content.Add(entry.Name.Trim(), Encoding.UTF8.GetString(bytes));
-                            }
-                        }
-                    }
-                }
-            }
+            if (name.EndsWith(".zip")) return url.HttpGet<Stream>();
+            if (name.EndsWith(".protected")) return new MemoryStream(Crypt.Decrypt(password, url.HttpGet<Stream>()));
+            throw new Exception("Unknown bundle");
         }
 
 
+        internal JsFiles(string url,string password="")
+        {
+            Origin= url;
+            var uri = new Uri(url);                                                                                                                             // This is the URL
+            Query = uri.Query;                                                                                                                                  // This is the QUERY 
+            var items = uri.GetLeftPart(UriPartial.Path).Split('/');                                                                                            // Let's split the URL path
+            Name = items.Last();                                                                                                                                // Get code start point
+            Path = String.Join("/", items.SkipLast(1)) + "/";                                                                                                   // Get path
+            if (Name.ToLower().EndsWith(".js")) return;                                                                                                         // IF name ends with .js then we are done
 
+            using (var data=GetStream(Name.ToLower(),url,password))                                                                                             // Unzip the data stream    
+                foreach (var zipItem in Utils.Unzip(data)) content.Add(zipItem.Key, Encoding.UTF8.GetString(zipItem.Value));
+
+            Name = "";                                                                                                                                          // If we got here, then we are using a bundle and we don't need name or query
+            Query = "";
+        }
     }
 }

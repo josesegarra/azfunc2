@@ -25,7 +25,7 @@ namespace jFunc
             if (value.Length < 3) throw new Exception("Bad [_value] in query string");
             var key = (Environment.GetEnvironmentVariable("key") ?? "").Trim();
             if (key.Length< 3) throw new Exception("Bad key ");
-            return EncryptionHelper.Decrypt(key, value);
+            return Crypt.Decrypt(key, value);
         }
 
     }
