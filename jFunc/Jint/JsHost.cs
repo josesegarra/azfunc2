@@ -36,7 +36,8 @@ namespace jFunc.Jint
         public JsHost(string url,string password)
         {
             files = new JsFiles(url,password);                                                                                                                        // Files with a BUNDLE or without it
-            js.OnFile = (fname) => files[fname] ;                                                                                                                       // OnFile 
+            js.OnFile = (fname) => files.Fetch(fname) ;                                                                                                                       // OnFile 
+            js.OnFileBin = (fname) => files.FetchBin(fname);                                                                                                                       // OnFile 
             js.Define("log", (Action<object>)Log);                                                          // Define log in the script
         }
 
@@ -48,7 +49,7 @@ namespace jFunc.Jint
             if (start == "") start = "main.js";                                                                                                                         // If we have no start, let's use main.js            
             
             var startTime = DateTime.Now;                                                                                                                               // Starting time
-            var ok = js.Execute(files[start]);                                                                                                                          // Execute
+            var ok = js.Execute(files.Fetch(start));                                                                                                                          // Execute
             if (js.Result == null) return new BadRequestObjectResult("JS returned no result");                                                                          // We should always get a result, even if the script failed and OK is false
             if (nodata) js.Result = ok;                                                                                                                                 // If we don't want result data then use TRUE or FALSE
             if (nowrap) return ok ? new OkObjectResult(js.Result) : new BadRequestObjectResult(js.Result.ToString());                                                   // If nowrap then return the result

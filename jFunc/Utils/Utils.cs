@@ -142,9 +142,29 @@ namespace jFunc
         {
             return Encoding.UTF8.GetBytes(data);
         }
+        public static string ChopRightUntil(this string value, char k)
+        {
+            if (value==null) return "";
+            if (value.Length < 1) return "";
+            var i = value.Length - 1;
+            while (i > 0 && value[i] != k) i--;
+            return value.Substring(0, i);
+        }
 
 
         public static T HttpGet<T>(this string url)
+        {
+            try
+            {
+                return HttpGetWrapped<T>(url);
+            }
+            catch(Exception e)
+            {
+                throw new Exception("Fetching " + url + ". " + e.Message);
+            }
+        }
+
+        public static T HttpGetWrapped<T>(this string url)
         {
             object result = null;
             if (typeof(T) == typeof(string)) result=(object)(new HttpClient()).GetStringAsync(url).Result;
@@ -199,6 +219,12 @@ namespace jFunc
             }
         }
 
+        public static string Left(this string value, int length)
+        {
+            if (value == null) return "";
+            if (length > value.Length) return value;
+            return value.Substring(0, length);
+        }
 
         public static Dictionary<string, byte[]> Unzip(Stream dataStream)
         {

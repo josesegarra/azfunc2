@@ -16,7 +16,7 @@ namespace jFunc.Jint
     internal class JsFiles
     {
 
-        Dictionary<string, string> content = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, byte[]> content = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
         internal string Origin { get; private set; }
         internal string Name { get; private set; }
         internal string Path { get; private set; }
@@ -25,18 +25,19 @@ namespace jFunc.Jint
 
         internal string urlBase = "";
 
-        internal string this[string value]
-        {
-            get => Fetch(value);
-        }
-
-        string Fetch(string value)
+        internal string Fetch(string value)
         {
             if (Name!="")   return (Path + value + (Query != "" ? Query : "")).HttpGet<string>();
-            if (content.Keys.Contains(value)) return content[value];
-            throw new Exception("File not un Bundle:" + value);
+            if (content.Keys.Contains(value)) return Encoding.UTF8.GetString(content[value]);
+            throw new Exception("File not found Bundle:" + value);
         }
 
+        internal byte[] FetchBin(string value)
+        {
+            if (Name != "") return (Path + value + (Query != "" ? Query : "")).HttpGet<byte[]>();
+            if (content.Keys.Contains(value)) return content[value];
+            throw new Exception("File not found:" + value);
+        }
 
         Stream GetStream(string name,string url,string password)
         {
@@ -57,7 +58,7 @@ namespace jFunc.Jint
             if (Name.ToLower().EndsWith(".js")) return;                                                                                                         // IF name ends with .js then we are done
 
             using (var data=GetStream(Name.ToLower(),url,password))                                                                                             // Unzip the data stream    
-                foreach (var zipItem in Utils.Unzip(data)) content.Add(zipItem.Key, Encoding.UTF8.GetString(zipItem.Value));
+                foreach (var zipItem in Utils.Unzip(data)) content.Add(zipItem.Key, zipItem.Value);
 
             Name = "";                                                                                                                                          // If we got here, then we are using a bundle and we don't need name or query
             Query = "";

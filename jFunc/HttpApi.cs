@@ -30,7 +30,6 @@ namespace jFunc
                 HttpLogger.logger = log;
                 var form = req.ReadFormAsync().Result;                                                                                                                                      // Get form data
                 var token = form.ContainsKey("token") ? form["token"].ToString().Trim() : throw new Exception("Missing token value in form");                                               // Get token
-          
                 var url = Crypt.Decrypt(token, path);                                                                                                                                       // Get the URL
                 if (!url.ToLower().StartsWith("http:") && !url.ToLower().StartsWith("https:")) throw new Exception("Bad value");                                                            // Must be an HTTP point        
                 var ftoken = form.ContainsKey("ftoken") ? form["value"].ToString().Trim() : token;                                                                                          // Get form token if present. If not use same as URL
