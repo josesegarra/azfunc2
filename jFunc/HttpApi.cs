@@ -21,22 +21,29 @@ namespace jFunc
     public static class HttpApi
     {
 
-        // http://localhost:7068/api/HttpExample?_key=this_is_key&_start=http://localhost/az/test.js&cb=cb1&cp=43428&f=DAY
+        //  To test: 
+        //      1. Have in http://localhost/az/main.js the code to RUN
+        //      2. Encrypt using a token THE PATH to the code:
+        //              curl.exe  -F "token=pepe0124567890123456789" -F "value=http://localhost/az/main.js" http://localhost:7068/api/protect
+        // Returns:
+        //              y7Kxy1s6dVMo_nnvNZnefVANnws2B6iJKJiOjx35qVY-
+        //
+        //      3. Execute the code
+        //              curl.exe  -F "token=pepe0124567890123456789" "http://localhost:7068/api/run/y7Kxy1s6dVMo_nnvNZnefVANnws2B6iJKJiOjx35qVY-?report=CB4_DAY&_nodata=1"
+
+
         [FunctionName("run")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "run/{path}")] HttpRequest req, ILogger log,string path)
         {
             try
             {
                 HttpLogger.logger = log;
-                var form = req.ReadFormAsync().Result;                                                                                                                                      // Get form data
-                var token = form.ContainsKey("token") ? form["token"].ToString().Trim() : throw new Exception("Missing token value in form");                                               // Get token
-                var url = Crypt.Decrypt(token, path);                                                                                                                                       // Get the URL
-                if (!url.ToLower().StartsWith("http:") && !url.ToLower().StartsWith("https:")) throw new Exception("Bad value");                                                            // Must be an HTTP point        
+                var form = req.ReadFormAsync().Result;                                                                                                                                  // Get form data
+                var token = form.ContainsKey("token") ? form["token"].ToString().Trim() : throw new Exception("Missing token value in form");                                           // Get token
+                var url = Crypt.Decrypt(token, path);                                                                                                                                   // Get the URL
+                if (!url.ToLower().StartsWith("http:") && !url.ToLower().StartsWith("https:")) throw new Exception("Bad value");                                                        // Must be an HTTP point        
                 var ftoken = form.ContainsKey("ftoken") ? form["value"].ToString().Trim() : token;                                                                                          // Get form token if present. If not use same as URL
-
-
                 var host = new JsHost(url,ftoken);                                                                                                                                          // Create a HOST capable of running VALUE
-
                 host.Define("query", (Func<string, string>)(s => s.Trim().StartsWith("_") ? "" : req.Query.Get(s, Utils.IfNotFound.returnEmpty)));                                          // Define the QUERY function in the host that just returns the query parameter    
                 bool nodata = req.Query.Get("_nodata", Utils.IfNotFound.returnEmpty) != "";                                                                                                 // Do we want a result at all....
                 bool nowrap = req.Query.Get("_nowrap", Utils.IfNotFound.returnEmpty) != "";                                                                                                 // Are we wrapping the result
@@ -74,7 +81,7 @@ namespace jFunc
                 if (token.Length < 18) throw new Exception("Token length needs to be at least 18 chars");                                                                                   // Validate token length
 
                 var file = req.Form.Files.GetFile("file");                                                                                                                                  // Check if file
-                if (file != null) using (var stream = file.OpenReadStream()) return new FileContentResult(doFile(token, stream), "application/binary") { FileDownloadName = "data" };         // If file, then encrypt or decrypt the file
+                if (file != null) using (var stream = file.OpenReadStream()) return new FileContentResult(doFile(token, stream), "application/binary") { FileDownloadName = "data" };       // If file, then encrypt or decrypt the file
 
                 if (!form.ContainsKey("value")) throw new Exception("Protect needs a file or a value parameter");                                                                           // If not file, then we need  a value
                 return new OkObjectResult(doValue(token, form["value"].ToString().Trim()));                                                                                                 // Encrypt or decrypt the value

@@ -18,7 +18,7 @@ namespace jFunc.Js
 
         public Func<string,string> OnFile { get; set; } =(s)=>throw new NotImplementedException();
         public Func<string, byte[]> OnFileBin { get; set; } = (s) => throw new NotImplementedException();
-        byte[] SafeOnFileBin(string name) => Utils.TryCatch<byte[]>(() => OnFileBin(name));                                                     // Safe version of OnFileBin...
+        byte[] SafeOnFileBin(string name) => Utils.TryCatch<byte[]>(() => OnFileBin(name));                                                         // Safe version of OnFileBin...
 
         public JsRuntime()
         {
@@ -49,7 +49,7 @@ namespace jFunc.Js
         {
             file = file.Trim();
             var content=OnFile(file);
-            var requireScript = "(function(){\n" + Utils.Indent(content)+ "\n\n})();";                             // Wrap the required script. We don't pollute the global namespace  
+            var requireScript = "(function(){\n" + Utils.Indent(content)+ "\n\n})();";                                                          // Wrap the required script. We don't pollute the global namespace  
             JsValue result=engine.Evaluate(requireScript);
             return result;
         }
@@ -57,26 +57,26 @@ namespace jFunc.Js
 
         Assembly Resolve(AppDomain ad ,string name)
         {
-            var assembly = ad.GetAssemblies().FirstOrDefault(a => a.FullName == name);                                          // Find if already loaded
-            if (assembly != null) return assembly;                                                                              // If so then return it
-            var filename= name.Split(',')[0].Trim();                                                                            // In case we have a full name...split it
-            if (!filename.ToLower().EndsWith(".dll")) filename = filename + ".dll";                                             // Make sure it ends with DLL
-            var b = SafeOnFileBin(filename);                                                                                    // Safe load (ie: doesn´t throw on error)
-            if (b != null)  return Assembly.Load(b);                                                                            // If loaded then return the assembler
-            return null;                                                                                                        // Null...so it goes alongside the pipeline
+            var assembly = ad.GetAssemblies().FirstOrDefault(a => a.FullName == name);                                                          // Find if already loaded
+            if (assembly != null) return assembly;                                                                                              // If so then return it
+            var filename= name.Split(',')[0].Trim();                                                                                            // In case we have a full name...split it
+            if (!filename.ToLower().EndsWith(".dll")) filename = filename + ".dll";                                                             // Make sure it ends with DLL
+            var b = SafeOnFileBin(filename);                                                                                                    // Safe load (ie: doesn´t throw on error)
+            if (b != null)  return Assembly.Load(b);                                                                                            // If loaded then return the assembler
+            return null;                                                                                                                        // Null...so it goes alongside the pipeline
         }
 
         public bool Execute(string script)
         {
             try
             {
-                var runScript = "(function(){ " + script + "})();";                                                             // Wrap the script (so that we don´t pollute global)
-                AppDomain ad = AppDomain.CurrentDomain;                                                                         // This is current domain
-                ResolveEventHandler handler = (sender, args) => Resolve(ad,args.Name);                                          // Resolve for needed assemblies
-                ad.AssemblyResolve += handler;                                                                                  // Hook assembly resolve
-                Result = engine.Evaluate(runScript).ToObject();                                                                 // Run
-                ad.AssemblyResolve -= handler;                                                                                  // Remove handler    
-                return true;                                                                                                    // Return true
+                var runScript = "(function(){ " + script + "})();";                                                                             // Wrap the script (so that we don´t pollute global)
+                AppDomain ad = AppDomain.CurrentDomain;                                                                                         // This is current domain
+                ResolveEventHandler handler = (sender, args) => Resolve(ad,args.Name);                                                          // Resolve for needed assemblies
+                ad.AssemblyResolve += handler;                                                                                                  // Hook assembly resolve
+                Result = engine.Evaluate(runScript).ToObject();                                                                                 // Run
+                ad.AssemblyResolve -= handler;                                                                                                  // Remove handler    
+                return true;                                                                                                                    // Return true
             }
             catch(Exception s)
             {
@@ -85,9 +85,5 @@ namespace jFunc.Js
             }
         }
         public void DefineFunction(string name, Delegate func) => engine.SetValue(name, func);
-
     }
-
-
-
 }

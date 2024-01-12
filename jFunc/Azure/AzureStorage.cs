@@ -82,6 +82,28 @@ namespace jFunc.Azure
             }
         }
 
+        public bool PutBlock(string target, string data, string mime)
+        {
+            target = rootFolder + target;
+            try
+            {
+                msg.error = "";
+                var blob = msg.Get(target);                                                                                                         // Delete previous version of the file
+                if (blob != null) msg.Delete(target);
+                if (msg.error != "") throw new Exception(msg.error);
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(data);
+                msg.CreateBlockAndContent(target,mime, bytes);                                                                                                          // Upload
+                if (msg.error != "") throw new Exception(msg.error);                                                                                // If error....
+                return true;
+            }
+            catch (Exception e)
+            {
+                msg.error = e.Message;
+                return false;
+            }
+        }
+
+
         public bool Put(string target,string data)
         {
             target = rootFolder + target;

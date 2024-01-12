@@ -108,6 +108,23 @@ namespace jFunc.Azure
                 return CheckError(client.SendAsync(msg).Result);
             }
         }
+        public bool CreateBlockAndContent(string path,string mime,byte[] line)
+        {
+            var tUrl = baseUrl + "/" + path + "?" + sas;
+            using (var client = new HttpClient())
+            {
+                var msg = CreateMessage(HttpMethod.Put, tUrl, line);
+                msg.Headers.Add("x-ms-blob-type", "BlockBlob");
+                msg.Headers.Add("x-ms-blob-content-type", mime);
+
+                // TRY THIS FOR THE CONTENT
+                // Content-Type                 https://learn.microsoft.com/en-us/rest/api/storageservices/put-blob?tabs=azure-ad
+                // or x-ms-blob-content-type
+                return CheckError(client.SendAsync(msg).Result);
+            }
+
+        }
+
 
         public bool Append(string path, byte[] data)                                                                                         // Return Yes or False if a BLOB exists or not
         {
