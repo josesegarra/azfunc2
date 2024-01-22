@@ -218,6 +218,26 @@ namespace jFunc
                 return onFail(e);
             }
         }
+        public static byte[] StringToByteArray(String hex)
+        {
+            int NumberChars = hex.Length;
+            byte[] bytes = new byte[NumberChars / 2];
+            for (int i = 0; i < NumberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            return bytes;
+        }
+        public static T TryFail<T>(Func<T> f1, string message)
+        {
+
+            try
+            {
+                return f1();
+            }
+            catch (Exception)
+            {
+                throw new Exception(message);
+            }
+        }
 
         public static string Left(this string value, int length)
         {
@@ -268,6 +288,15 @@ namespace jFunc
                 return ms.ToArray();
             }
         }
+
+        public static void PrintColor(string text,ConsoleColor c=ConsoleColor.Green)
+        {
+            var cb = Console.ForegroundColor;
+            Console.ForegroundColor = c;
+            Console.WriteLine(text);
+            Console.ForegroundColor = cb;
+        }
+
 
     }
 }

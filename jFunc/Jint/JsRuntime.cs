@@ -34,6 +34,7 @@ namespace jFunc.Js
             engine.SetValue("register", new Func<string,int>( (name) => dll.Register(OnFileBin(name))));
             engine.SetValue("AkamaiApi", TypeReference.CreateTypeReference(engine, typeof(jFunc.Akamai.AkamaiApi)));
             engine.SetValue("RestApi", TypeReference.CreateTypeReference(engine, typeof(jFunc.Rest.RestApi)));
+            engine.SetValue("OpenSSL", TypeReference.CreateTypeReference(engine, typeof(jFunc.OpenSSL)));
             engine.SetValue("AzureStorage", TypeReference.CreateTypeReference(engine, typeof(jFunc.Azure.Storage)));
             engine.SetValue("yellow", new Action<string>((a) => {
                 var c = Console.ForegroundColor;

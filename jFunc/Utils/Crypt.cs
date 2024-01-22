@@ -2,12 +2,10 @@
 using System.Text;
 using System.Security.Cryptography;
 using System.IO;
-using System.Linq;
 
-namespace JFunc.Utils
-{
-    
-    public static class Crypt
+namespace jFunc
+{   
+    public static class Crypt                                                               // This class is similar to the one in OpenSSL...but it uses, a fixed SALT, default Rfc2898 KEY and IV. It also adds support for STREAMS.
     {
 
         static string UrlFriendly(string s)
@@ -48,7 +46,11 @@ namespace JFunc.Utils
                 }
             }
         }
-        public static string Decrypt(string EncryptionKey,string cipherText)
+
+
+        public static string Decrypt(string Key, string Text) => Utils.TryFail(() => DecryptInternal(Key, Text),"Decrypt failed");
+
+        static string DecryptInternal(string EncryptionKey,string cipherText)
         {
             cipherText = UndoUrlFriendly(cipherText);
             if (cipherText.Length < 1) throw new Exception("Some text is needed to decrypt");

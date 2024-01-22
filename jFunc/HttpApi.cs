@@ -5,7 +5,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using JFunc.Utils;
 using jFunc.Jint;
 using Newtonsoft.Json;
 using System.IO;

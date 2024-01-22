@@ -40,6 +40,8 @@ namespace jFunc.Rest
             ServicePointManager.Expect100Continue = false;
             using (var request = new HttpRequestMessage(HttpMethod.Post, url))
             {
+                data = data.Trim();
+                if (data.Length>0) request.Content=new StringContent(data);
                 AddHeaders(request);
                 var response = client.SendAsync(request).Result;
                 return new RestResponse(response);
