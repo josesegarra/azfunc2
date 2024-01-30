@@ -63,8 +63,17 @@ namespace jFunc
             return CryptDecrypt(req, Crypt.Decrypt, Crypt.Decrypt);
         }
 
+        [FunctionName("version")]
+        public static IActionResult Version([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)                                               // This function returns a token to access a script. It requires the KEY and the script path in VALUE
+        {
+            var location = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var version = System.IO.File.GetLastWriteTime(location).ToString("yyyy.MM.dd.HH.mm.ss");
 
-        
+
+            return new OkObjectResult(new { version = version });
+        }
+
+
         static IActionResult CryptDecrypt(HttpRequest req, Func<string, Stream, byte[]> doFile, Func<string, string, string> doValue)
         {
             try
