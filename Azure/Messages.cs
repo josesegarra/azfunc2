@@ -6,6 +6,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
+using System.Diagnostics;
 
 namespace jFunc.Azure
 {
@@ -16,6 +17,7 @@ namespace jFunc.Azure
         internal const char delimiter = '/';                                                                                                        // Defined by uploader !!!
         internal const string MSAPI = "2022-11-02";                                                                                                 // Api version                             
         internal string error = "";
+        internal bool debug = false;
 
         public Messages(string wUrl,string wSas) 
         {
@@ -48,7 +50,8 @@ namespace jFunc.Azure
             };
             httpRequestMessage.Headers.Add("x-ms-version", MSAPI);
             httpRequestMessage.Headers.Add("date-length", DateTime.Now.ToString("r"));
-            var c= CreateContent(msg);
+
+            var c = CreateContent(msg);
             if (c.Content!=null)
             {
                 httpRequestMessage.Content = c.Content;
@@ -105,9 +108,26 @@ namespace jFunc.Azure
             {
                 var msg = CreateMessage(HttpMethod.Put, tUrl, line);
                 msg.Headers.Add("x-ms-blob-type", "AppendBlob");
+                if (debug) DebugMessage(msg);
                 return CheckError(client.SendAsync(msg).Result);
             }
         }
+
+        void DebugMessage(HttpRequestMessage msg) 
+        {
+            Console.WriteLine(msg.RequestUri.ToString());
+            Console.WriteLine(msg.Method);
+            foreach(var x in msg.Headers)
+            {
+                Console.WriteLine("Header: "+x.Key + ": " + x.Value);
+            }
+            if (msg.Content != null)
+            {
+                Console.WriteLine(msg.Content.ToString());
+            }
+        }
+
+
         public bool CreateBlockAndContent(string path,string mime,byte[] line)
         {
             var tUrl = baseUrl + "/" + path + "?" + sas;

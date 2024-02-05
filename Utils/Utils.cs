@@ -164,6 +164,17 @@ namespace jFunc
             }
         }
 
+        public static T FileGet<T>(this string url)
+        {
+            object result = null;
+            if (typeof(T) == typeof(string)) result = File.ReadAllText(url);
+            if (typeof(T) == typeof(Stream)) result = new FileStream(url, FileMode.Open, FileAccess.Read); ;
+            if (typeof(T) == typeof(byte[])) result = File.ReadAllBytes(url);
+            if (result != null) return (T)result;
+            throw new NotImplementedException("FileGet failed for type " + typeof(T).Name);
+        }
+
+
         public static T HttpGetWrapped<T>(this string url)
         {
             object result = null;
@@ -180,7 +191,7 @@ namespace jFunc
             }
 
             if (result != null) return (T)result;
-            throw new NotImplementedException("HttpGet for type "+typeof(T).Name);
+            throw new NotImplementedException("HttpGet failed for type "+typeof(T).Name);
         }
 
         public static string UrlPath(string value)

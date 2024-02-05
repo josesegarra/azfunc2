@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace jFunc.Js
 {
-    internal class JsRuntime
+    public class JsRuntime
     {
         Engine engine;
         HashSet<Type> RegisteredTypes = new HashSet<Type>();

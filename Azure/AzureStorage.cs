@@ -103,6 +103,22 @@ namespace jFunc.Azure
             }
         }
 
+        public bool Write(string target,string data)
+        {
+            target = rootFolder + target; 
+            try
+            {
+                msg.error = "";
+                msg.Append(target, data);                                                                                                          // Upload
+                if (msg.error != "") throw new Exception(msg.error);                                                                                // If error....
+                return true;
+            }
+            catch (Exception e)
+            {
+                msg.error = e.Message;
+                return false;
+            }
+        }
 
         public bool Put(string target,string data)
         {
