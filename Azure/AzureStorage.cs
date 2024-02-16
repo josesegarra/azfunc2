@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace jFunc.Azure
 {
@@ -92,7 +93,7 @@ namespace jFunc.Azure
                 if (blob != null) msg.Delete(target);
                 if (msg.error != "") throw new Exception(msg.error);
                 byte[] bytes = System.Text.Encoding.UTF8.GetBytes(data);
-                msg.CreateBlockAndContent(target,mime, bytes);                                                                                                          // Upload
+                msg.CreateBlockAndContent(target,mime, bytes);                                                                                      // Upload
                 if (msg.error != "") throw new Exception(msg.error);                                                                                // If error....
                 return true;
             }
@@ -108,6 +109,8 @@ namespace jFunc.Azure
             target = rootFolder + target; 
             try
             {
+                var blob = msg.Get(target);                                                                                                         // Delete previous version of the file
+                if (blob == null) msg.CreateBlob(target); 
                 msg.error = "";
                 msg.Append(target, data);                                                                                                          // Upload
                 if (msg.error != "") throw new Exception(msg.error);                                                                                // If error....
@@ -180,6 +183,18 @@ namespace jFunc.Azure
             if (folder == null) folder = "";
             if (folder.EndsWith("/")) folder= folder.Substring(0, folder.Length - 1);   
             return msg.List(rootFolder + folder);
+        }
+
+
+        public static void Log(string blob_path, string line)
+        {
+            var blob_sas = blob_path.Split('?');
+            if (blob_sas.Length != 2) return;
+            var bpath = blob_sas[0].Split('/');
+            var bfile = bpath.Last();
+            var bhost = String.Join('/', bpath.Take(bpath.Length - 1));
+            var storage = new Storage(bhost, blob_sas[1], "");
+            if (!storage.Write(bfile, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "   | " + line + "\n")) throw new Exception(storage.Error);
         }
     }
 }

@@ -42,20 +42,15 @@ namespace jFunc
 
         static void LogRun(string path, IActionResult result, string blob_path)
         {
-            var blob_sas = blob_path.Split('?');
-            if (blob_sas.Length != 2) return;
-            var line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "   | ";
-            line = line + path.Split('?')[0].PadRight(80) + "   | ";
+            var line = path.Split('?')[0].PadRight(80) + "   | ";
             var str = "Panic: bad logic";
             if (result is BadRequestObjectResult) str = "Bad request: " + ((BadRequestObjectResult)result).Value.ToString();
             if (result is OkObjectResult) str = ((BadRequestObjectResult)result).Value.ToString();
             if (result is JsonResult) str = JsonConvert.SerializeObject(((JsonResult)result).Value, Formatting.None);
-            var bpath = blob_sas[0].Split('/');
-            var bfile = bpath.Last();
-            var bhost = String.Join('/', bpath.Take(bpath.Length - 1));
-            var storage = new Storage(bhost, blob_sas[1], "");
-            if (!storage.Write(bfile,line + str + "\n")) throw new Exception(storage.Error);
+            Storage.Log(blob_path, line + str);
         }
+
+        
 
 
         [FunctionName("run")]
@@ -66,7 +61,7 @@ namespace jFunc
                 HttpLogger.logger = log;
                 var form = req.ReadFormAsync().Result;                                                                                                                                  // Get form data
                 var token = form.ContainsKey("token") ? form["token"].ToString().Trim() : throw new Exception("Missing token value in form");                                           // Get token
-                var blog= form.ContainsKey("blob_log") ? form["blob_log"].ToString().Trim() : "";                                                                                      // Do we have BLOB log ??    
+                var blog= form.ContainsKey("blob_log") ? form["blob_log"].ToString().Trim() : "";                                                                                       // Do we have BLOB log ??    
                 var url = Crypt.Decrypt(token, path);                                                                                                                                   // Get the URL
                 if (!url.ToLower().StartsWith("http:") && !url.ToLower().StartsWith("https:")) throw new Exception("Bad value");                                                        // Must be an HTTP point        
                 var ftoken = form.ContainsKey("ftoken") ? form["value"].ToString().Trim() : token;                                                                                      // Get form token if present. If not use same as URL
@@ -108,6 +103,13 @@ namespace jFunc
 
             return new OkObjectResult(new { version = version });
         }
+
+        [FunctionName("identity")]
+        public static IActionResult Identity([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)                                                 // This function returns a token to access a script. It requires the KEY and the script path in VALUE
+        {
+            return new OkObjectResult(new { name= "This is identity"});
+        }
+
 
 
         static IActionResult CryptDecrypt(HttpRequest req, Func<string, Stream, byte[]> doFile, Func<string, string, string> doValue)

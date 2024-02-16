@@ -19,6 +19,9 @@ namespace jFunc.Rest
         {
         }
 
+
+        public static RestResponse GetUrl(string url) => (new RestApi()).Get(url);
+
         void AddHeaders(HttpRequestMessage request)
         {
             foreach (var header in Headers) request.Headers.Add(header.Key, header.Value);

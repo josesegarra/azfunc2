@@ -1,12 +1,9 @@
-﻿using jFunc.Js;
-using Jint.Runtime;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Security.Principal;
-using System.Xml.Linq;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using jFunc.Js;
 
 namespace jFunc.Jint
 {
