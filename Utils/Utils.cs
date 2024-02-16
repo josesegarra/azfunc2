@@ -4,8 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Net.Http;
-using jFunc.Azure;
-using System.Linq;
 
 namespace jFunc
 {
