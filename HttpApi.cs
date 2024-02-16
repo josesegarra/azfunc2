@@ -16,7 +16,7 @@ namespace jFunc
         public static IActionResult Version([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req, ILogger log)                                               
         {
             var location = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var version = System.IO.File.GetLastWriteTime(location).ToString("yyyy.MM.dd.HH.mm.ss");
+            var version = "azfunc2 "+System.IO.File.GetLastWriteTime(location).ToString("yyyy.MM.dd.HH.mm.ss");
 
 
             return new OkObjectResult(new { version = version });
