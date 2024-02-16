@@ -25,7 +25,15 @@ namespace jFunc
         [FunctionName("identity")]
         public static IActionResult Identity([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log)                                                 
         {
-            return new OkObjectResult(new { name= "This is identity"});
+            var n = new Dictionary<string, string>();
+            foreach(var header in req.Headers)
+            {
+                n.Add(header.Key, header.Value.ToString());
+
+            }
+            
+            
+            return new OkObjectResult(new { name= "This is identity" , headers = n});
         }
 
     }
