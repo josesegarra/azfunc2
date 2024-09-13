@@ -36,5 +36,19 @@ namespace jFunc
             return new OkObjectResult(new { name= "This is identity" , headers = n});
         }
 
+        [FunctionName("login")]
+        public static IActionResult Login([HttpTrigger(AuthorizationLevel.User, "get", "post", Route = null)] HttpRequest req, ILogger log)
+        {
+            var n = new Dictionary<string, string>();
+            foreach (var header in req.Headers)
+            {
+                n.Add(header.Key, header.Value.ToString());
+
+            }
+
+
+            return new OkObjectResult(new { name = "This is login", headers = n });
+        }
+
     }
 }
